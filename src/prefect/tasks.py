@@ -228,14 +228,19 @@ class Task(Generic[P, R]):
             retry_delay_seconds=retry_delay_seconds or self.retry_delay_seconds,
         )
 
+    ###############################################################################################
+    # Monkey patch below. Since we enforce types on all tasks, we remove the NoReturn
+    # overload, meant only to catch tasks with no type hints. We then reverse the order of the
+    # two remaining overloads, since otherwise the first shadows the second. I only barely
+    # understand these words I have just written.
+    ###############################################################################################
+
     @overload
     def __call__(
-        self: "Task[P, NoReturn]",
+        self: "Task[P, T]",
         *args: P.args,
         **kwargs: P.kwargs,
-    ) -> PrefectFuture[None, Sync]:
-        # `NoReturn` matches if a type can't be inferred for the function which stops a
-        # sync function from matching the `Coroutine` overload
+    ) -> PrefectFuture[T, Sync]:
         ...
 
     @overload
@@ -246,13 +251,9 @@ class Task(Generic[P, R]):
     ) -> Awaitable[PrefectFuture[T, Async]]:
         ...
 
-    @overload
-    def __call__(
-        self: "Task[P, T]",
-        *args: P.args,
-        **kwargs: P.kwargs,
-    ) -> PrefectFuture[T, Sync]:
-        ...
+    ###############################################################################################
+    # End of monkey patch
+    ###############################################################################################
 
     def __call__(
         self,
