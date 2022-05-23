@@ -15,6 +15,7 @@ include src/prefect/_version.py
 include src/prefect/profiles.toml
 include src/prefect/logging/logging.yml
 include src/prefect/cli/templates/*.yaml
+include src/prefect/py.typed
 
 # Migrations
 include src/prefect/orion/database/alembic.ini
